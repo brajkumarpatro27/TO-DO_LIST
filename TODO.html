@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple To-Do list</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    li {
+      margin: 10px 0;
+    }
+    input[type="text"] {
+      padding: 5px;
+      width: 200px;
+    }
+    button {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>My To-Do List</h1>
+  <form id="todoForm">
+    <input type="text" id="todoInput" placeholder="Enter a task" required />
+    <button type="submit">Add Task</button>
+  </form>
+  <ul id="todoList"></ul>
+
+  <script>
+    // Entry point
+    document.addEventListener("DOMContentLoaded", () => {
+      const todoForm = document.getElementById("todoForm");
+      const todoInput = document.getElementById("todoInput");
+      const todoList = document.getElementById("todoList");
+
+      // Load tasks from local storage
+      let tasks = loadTasks();
+
+      // Render existing tasks
+      renderTasks(tasks);
+
+      // Handle form submission
+      todoForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const taskText = todoInput.value.trim();
+        if (taskText) {
+          const newTask = createTask(taskText);
+          tasks.push(newTask);
+          saveTasks(tasks);
+          renderTasks(tasks);
+          todoInput.value = "";
+        }
+      });
+
+      // Handle task actions
+      todoList.addEventListener("click", (event) => {
+        const index = event.target.dataset.index;
+        if (event.target.classList.contains("delete")) {
+          tasks.splice(index, 1);
+        } else if (event.target.classList.contains("toggle")) {
+          tasks[index].done = !tasks[index].done;
+        }
+        saveTasks(tasks);
+        renderTasks(tasks);
+      });
+    });
+
+    // Create a new task object
+    function createTask(text) {
+      return {
+        text,
+        done: false,
+      };
+    }
+
+    // Save tasks to localStorage
+    function saveTasks(tasks) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // Load tasks from localStorage
+    function loadTasks() {
+      const data = localStorage.getItem("tasks");
+      return data ? JSON.parse(data) : [];
+    }
+
+    // Render all tasks to the DOM
+    function renderTasks(tasks) {
+      const todoList = document.getElementById("todoList");
+      todoList.innerHTML = ""; // Clear list
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <input type="checkbox" class="toggle" data-index="${index}" ${task.done ? "checked" : ""}>
+          <span style="${task.done ? 'text-decoration: line-through;' : ''}">${task.text}</span>
+          <button class="delete" data-index="${index}">Delete</button>
+        `;
+        todoList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
